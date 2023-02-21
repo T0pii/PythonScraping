@@ -1,7 +1,7 @@
 import random as rand
 import time
 
-GRIDSIZE=10
+GRIDSIZE=30
 
 def initGrid(size):
   return ([[rand.randint(0,1) for i in range(size)] for j in range(size)])
@@ -12,7 +12,7 @@ def displayGrid(grid):
       if(grid[row][col] == 0):
         print(".",end="")
       else:
-        print("0",end="")
+        print("O",end="")
       print(" ",end="")
     print("")
 
@@ -50,7 +50,7 @@ def main():
   grid = initGrid(GRIDSIZE)
   displayGrid(grid)
   while True:
-    time.sleep(0.8)
+    time.sleep(0.4)
     grid=nextGeneration(grid)
     displayGrid(grid)
     
