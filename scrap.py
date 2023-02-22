@@ -15,13 +15,15 @@ def getEndpoints(soup):
   return links
 
 def getInfoByPage(soup):
+  massif = soup.find('div', {'class' : 'massif'}).getText().replace("Massif ",'')
   domaine = soup.find('div', {'class' : 'domaine'}).getText().replace("Domaine ",'')
   altitude = soup.find('div', {'class' : 'pistes'}).getText().replace("Altitude ", '')
-  avis = soup.find('span', {'class' : 'note'}).getText().replace('/10','')
+  note = soup.find('span', {'class' : 'note'}).getText().replace('/10','')
   infos = {
+    "massif" : massif,
     "domaine" : domaine,
     "altitude" : altitude,
-    "avis" : avis
+    "note" : note
   }
   return infos
 
@@ -43,8 +45,10 @@ def fileWriter(file, fieldnames, data):
 """soup = BeautifulSoup(requests.get("https://www.ski-planet.com/fr/location-ski/residence-appart-vacances-pyrenees-2000_pyrenees-2000.html").text, 'html.parser') 
 print(soup.findAll('div',{'class': 'bloc-bandeau'}))
 """
-
-endpoints = getSoup(baseUrl + uri, getEndpoints)
+endpoints = []
+for i in range (1,6):
+  endpoints.extend(getSoup(baseUrl + uri + "&p=" + str(i), getEndpoints))
+print(len(endpoints))
 
 endpointsDict = []
 for endpoint in endpoints:
@@ -54,5 +58,5 @@ allResults = []
 for endpoint in endpoints:
   allResults.append(getSoup(endpoint, getInfoByPage))
 
-print(allResults)
 fileWriter('links.csv',['link'],endpointsDict)
+fileWriter('data.csv',['massif','domaine','altitude','note'],allResults)
