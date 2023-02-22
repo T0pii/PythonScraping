@@ -34,7 +34,7 @@ def getSoup(url, process):
 
 def fileWriter(file, fieldnames, data):
   result = []
-  with open(file, 'w', encoding="UTF8", newline="") as f:
+  with open(file, 'w+', encoding="UTF8", newline="") as f:
     writer = csv.DictWriter(f, fieldnames=fieldnames)
     writer.writeheader()
     for d in data:
@@ -47,7 +47,7 @@ print(soup.findAll('div',{'class': 'bloc-bandeau'}))
 endpoints = getSoup(baseUrl + uri, getEndpoints)
 
 endpointsDict = []
-for endpoint in endpointsDict:
+for endpoint in endpoints:
   endpointsDict.append({"link" : endpoint})
 
 allResults = []
