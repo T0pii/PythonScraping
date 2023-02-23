@@ -15,17 +15,25 @@ def getEndpoints(soup):
   return links
 
 def getInfoByPage(soup):
-  massif = soup.find('div', {'class' : 'massif'}).getText().replace("Massif ",'')
-  domaine = soup.find('div', {'class' : 'domaine'}).getText().replace("Domaine ",'')
-  altitude = soup.find('div', {'class' : 'pistes'}).getText().replace("Altitude ", '')
+  infos = []
+  massif = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'massif'})).replace('Massif ', '')
+  domaine = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'domaine'})).replace("Domaine ",'')
+  altitude = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'pistes'})).replace("Altitude ",'')
   note = soup.find('span', {'class' : 'note'}).getText().replace('/10','')
-  infos = {
-    "massif" : massif,
-    "domaine" : domaine,
-    "altitude" : altitude,
-    "note" : note
-  }
+  infos.append ({
+      "massif" : massif,
+      "domaine" : domaine,
+      "altitude" : altitude,
+      "note" : note
+    })
   return infos
+
+def tryToCleanOrReturnBlank(str):
+  try:
+    result = str.getText().strip()
+  except:
+    result = ''
+  return result
 
 def getSoup(url, process):
   response = requests.get(url)
@@ -42,21 +50,31 @@ def fileWriter(file, fieldnames, data):
     for d in data:
       writer.writerow(d)
 
-"""soup = BeautifulSoup(requests.get("https://www.ski-planet.com/fr/location-ski/residence-appart-vacances-pyrenees-2000_pyrenees-2000.html").text, 'html.parser') 
-print(soup.findAll('div',{'class': 'bloc-bandeau'}))
-"""
+def fileReader(file):
+  result = []
+  with open(file, 'r', encoding="UTF8", newline="") as f:
+    reader = csv.DictReader(f)
+    for line in reader:
+      result.append(line) 
+  return result
+
 endpoints = []
-for i in range (1,6):
+for i in range (1,3):
   endpoints.extend(getSoup(baseUrl + uri + "&p=" + str(i), getEndpoints))
 print(len(endpoints))
 
-endpointsDict = []
+rows = []
+fields = ['link']
 for endpoint in endpoints:
-  endpointsDict.append({"link" : endpoint})
+  row = {}
+  row['link'] = endpoint
+  rows.append(row)
 
-allResults = []
-for endpoint in endpoints:
-  allResults.append(getSoup(endpoint, getInfoByPage))
+fileWriter('links.csv',fields,rows)
 
-fileWriter('links.csv',['link'],endpointsDict)
-fileWriter('data.csv',['massif','domaine','altitude','note'],allResults)
+rows = []
+for link in fileReader('links.csv'):
+  rows.extend(getSoup(link['link'], getInfoByPage))
+  
+fields = ['massif','domaine','altitude','note']
+fileWriter('data.csv', fields, rows)
