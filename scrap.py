@@ -1,9 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
-
-baseUrl = 'https://www.ski-planet.com/fr'
-uri = '/reservation/online_affiche.php?DteFrom=&NbNuits=&formule=false|false|false&MassifID=&DptID=&StationID=&TypeLog=&Nbpers=6'
+"""
+from SkiPlanetEntry import SkiPlanetEntry 
+from SkiPlanet import SkiPlanet
+from Scraper import Scraping
+"""
 
 def getEndpoints(soup):
   links=[]
@@ -16,13 +18,13 @@ def getEndpoints(soup):
 
 def getInfoByPage(soup):
   infos = []
-  massif = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'massif'})).replace('Massif ', '')
-  domaine = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'domaine'})).replace("Domaine ",'')
+  mountain = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'mountain'})).replace('mountain ', '')
+  domain = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'domain'})).replace("domain ",'')
   altitude = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'pistes'})).replace("Altitude ",'')
   note = soup.find('span', {'class' : 'note'}).getText().replace('/10','')
   infos.append ({
-      "massif" : massif,
-      "domaine" : domaine,
+      "mountain" : mountain,
+      "domain" : domain,
       "altitude" : altitude,
       "note" : note
     })
@@ -76,5 +78,5 @@ rows = []
 for link in fileReader('links.csv'):
   rows.extend(getSoup(link['link'], getInfoByPage))
   
-fields = ['massif','domaine','altitude','note']
+fields = ['mountain','domain','altitude','note']
 fileWriter('data.csv', fields, rows)
