@@ -1,80 +1,15 @@
-import requests
-from bs4 import BeautifulSoup
-import csv
+from Scraper import Scraper
+from SkiPlanet import SkiPlanet
 
-baseUrl = 'https://www.ski-planet.com/fr'
-uri = '/reservation/online_affiche.php?DteFrom=&NbNuits=&formule=false|false|false&MassifID=&DptID=&StationID=&TypeLog=&Nbpers=6'
+baseUrl = "https://www.ski-planet.com/fr"
+uri = "/reservation/online_affiche.php?DteFrom=2024-01-01&p="
 
-def getEndpoints(soup):
-  links=[]
-  div = soup.find('div', {'class': 'conteneur_encadres_residences'})
-  divs = soup.findAll('div', {'class': 'encadre_residence_titre_nom'})
-  for div in divs:
-    a = div.find('a')
-    links.append(a["href"])
-  return links
+studyramaInstance = SkiPlanet(baseUrl, uri, 5)
 
-def getInfoByPage(soup):
-  infos = []
-  massif = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'massif'})).replace('Massif ', '')
-  domaine = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'domaine'})).replace("Domaine ",'')
-  altitude = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'pistes'})).replace("Altitude ",'')
-  note = soup.find('span', {'class' : 'note'}).getText().replace('/10','')
-  infos.append ({
-      "massif" : massif,
-      "domaine" : domaine,
-      "altitude" : altitude,
-      "note" : note
-    })
-  return infos
+scraper = Scraper(studyramaInstance, "linksList.csv", "infos.csv")
 
-def tryToCleanOrReturnBlank(str):
-  try:
-    result = str.getText().strip()
-  except:
-    result = ''
-  return result
+scraper.exec()
 
-def getSoup(url, process):
-  response = requests.get(url)
-  if response.ok:
-    soup = BeautifulSoup(response.text, 'html.parser') 
-    return process(soup)
-  return []
+print("Done")
 
-def fileWriter(file, fieldnames, data):
-  result = []
-  with open(file, 'w+', encoding="UTF8", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=fieldnames)
-    writer.writeheader()
-    for d in data:
-      writer.writerow(d)
-
-def fileReader(file):
-  result = []
-  with open(file, 'r', encoding="UTF8", newline="") as f:
-    reader = csv.DictReader(f)
-    for line in reader:
-      result.append(line) 
-  return result
-
-endpoints = []
-for i in range (1,3):
-  endpoints.extend(getSoup(baseUrl + uri + "&p=" + str(i), getEndpoints))
-print(len(endpoints))
-
-rows = []
-fields = ['link']
-for endpoint in endpoints:
-  row = {}
-  row['link'] = endpoint
-  rows.append(row)
-
-fileWriter('links.csv',fields,rows)
-
-rows = []
-for link in fileReader('links.csv'):
-  rows.extend(getSoup(link['link'], getInfoByPage))
-  
-fields = ['massif','domaine','altitude','note']
-fileWriter('data.csv', fields, rows)
+exit()
