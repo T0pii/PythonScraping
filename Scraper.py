@@ -7,7 +7,7 @@ class Scraper:
     self.setScrapInstance(ScrapInstance)
     self.setEndpointsFile(endpointsFile)
     self.setFinalFile(finalFile)
-    self.finalFileFieldnames = self.ScrapInstance.getFinalFieldNames()
+    self.finalFileFieldnames = self.ScrapInstance.getfinalFileFieldnames()
     self.endpointsFileFieldnames = ['id', 'link']
     
   def setScrapInstance(self, instance):
@@ -27,9 +27,9 @@ class Scraper:
     if response.ok:
       soup = BeautifulSoup(response.text, 'html.parser') 
       return process(soup)
-    return []
+    return
 
-  def sooupMultiple(self, urls, process):
+  def soupMultiple(self, urls, process):
     result = []
     for url in urls:
       soup = self.soup(url, process)
@@ -49,6 +49,6 @@ class Scraper:
       row['id'] = i
       i += 1
       rows.append(row)
-    Toolkit.fileWriter(self.linkFile, self.linkFileNameFields, rows )
+    Toolkit.fileWriter(self.endpointsFile, self.endpointsFileFieldnames, rows )
     self.soupMultiple(self.ScrapInstance.getEndpoints(), self.ScrapInstance.getInfoByPage )
-    Toolkit.fileWriter(self.finalFile, self.finalFileNameFields, self.ScrapInstance.getDictResult() )
+    Toolkit.fileWriter(self.finalFile, self.finalFileFieldnames, self.ScrapInstance.getDictResult() )

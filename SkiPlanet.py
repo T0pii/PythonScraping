@@ -1,14 +1,18 @@
+from Toolkit import Toolkit
+from SkiPlanetEntry import SkiPlanetEntry
 class SkiPlanet:
   def __init__(self, baseUrl, uri, nbPage):
     self.baseUrl = baseUrl
     self.uri = uri
     self.nbPage = nbPage
     self.urls = []
-    self.finalFileNameFields = ["title","domain","mountain","minALtitude","maxAltitude","cost"]
+    self.endpoints = []
+    self.result = []
+    self.finalFileFieldnames = ["nom","domaine","massif","min_altitude","max_altitude","note","prix"]
   
   def getLinks(self):
     for i in range(1, self.nbPage + 1):
-      self.urls.append(self.baseUrl + self.uri + "&pg=" + str(i))
+      self.urls.append(self.baseUrl + self.uri + str(i))
     return self.urls
 
   def setEndpoints(self, soup):
@@ -17,34 +21,34 @@ class SkiPlanet:
     for div in divs:
       a = div.find('a')
       try:
-        self.endpoints.extend(a["href"])
+        self.endpoints.append(a["href"])
       except:
         pass
-    return self.setEndpoints
-  
-  def getEndpoints(self):
-    return self.getEndpoints
+    return self.endpoints
 
-  def getFinalFieldnames(self):
-    return self.finalFieldNames
+  def getEndpoints(self):
+    return self.endpoints
+
+  def getfinalFileFieldnames(self):
+    return self.finalFileFieldnames
   
   def getResult(self):
     return self.result
   
-  def getInfoByPage(soup):
-    infos = []
-    mountain = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'mountain'})).replace('mountain ', '')
-    domain = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'domain'})).replace("domain ",'')
-    altitude = tryToCleanOrReturnBlank(soup.find('div', {'class' : 'pistes'})).replace("Altitude ",'')
-    note = soup.find('span', {'class' : 'note'}).getText().replace('/10','')
-    infos.append ({
-        "mountain" : mountain,
-        "domain" : domain,
-        "altitude" : altitude,
-        "note" : note
-      })
-    return infos
-      
+  def getInfoByPage(self, soup):
+    name = Toolkit.tryToCleanOrReturnBlank(soup.find('span', {'class' : 'courant'}))
+    mountain = Toolkit.tryToCleanOrReturnBlank(soup.find('div', {'class' : 'massif'}))
+    domain = Toolkit.tryToCleanOrReturnBlank(soup.find('div', {'class' : 'domaine'}))
+    altitude = Toolkit.tryToCleanOrReturnBlank(soup.find('div', {'class' : 'pistes'}))
+    note = Toolkit.tryToCleanOrReturnBlank(soup.find('span', {'class' : 'note'}))
+    cost = Toolkit.tryToCleanOrReturnBlank(soup.find('div', {'class' : 'prix'}))
+    #Si promo présente (prix barré), recuperation du prix en promo uniquement
+    if soup.find('span', {'class' : 'barre'}) is not None:
+      cost = cost.split("€")[0]
+    info = SkiPlanetEntry(name,domain,mountain,altitude,note,cost)
+    self.result.append(info)
+    return info
+    
   def getDictResult(self):
     result = []
     for res in self.getResult():
